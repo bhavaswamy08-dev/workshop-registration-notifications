@@ -274,14 +274,14 @@ Duplicate delivery can occur when the notification service successfully receives
 
 Persistent notification jobs, retry handling, and delivery-status tracking improve reliability. However, the system must account for network failures, worker restarts, and uncertain delivery outcomes. These scenarios should be tested to verify the behavior of the implemented recovery and idempotency mechanisms.
 
-## 11. Limitations
+## 13. Limitations
 
 * The notification service is a mock service and does not send real email or SMS messages.
 * SQLite is used for local database storage.
 * The application is intended to demonstrate backend development, asynchronous processing, and retry handling.
 * Production deployment may require additional security, monitoring, and operational configuration.
 
-## 12. Conclusion
+## 14. Conclusion
 
 The Workshop Registration and Notifications application demonstrates how a backend system can combine REST APIs, database transactions, background processing, and automatic retries.
 
