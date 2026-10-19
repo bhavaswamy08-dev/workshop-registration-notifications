@@ -213,6 +213,66 @@ The retry mechanism was verified using the mock notification service.
 The worker logs confirmed that the first attempt failed and the second attempt succeeded. The notification job's API response also showed both delivery attempts, including their outcomes and HTTP status codes.
 
 This demonstrates how the application handles a temporary notification failure without losing the registration or notification job.
+## 11. Worker Restart Recovery
+
+The notification worker processes notification jobs stored in the database. Because these jobs are persisted, pending notifications remain available even if the worker stops unexpectedly or the application process restarts.
+
+### Recovery Scenario
+
+1. Start the main API, mock notification service, and background worker.
+
+2. Register a member for a workshop.
+
+3. Verify that the registration is saved and a notification job is created.
+
+4. Stop the background worker before the pending notification is successfully delivered.
+
+5. Restart the worker using:
+
+   ```bash
+   py -m app.worker.notification_worker
+   ```
+
+6. Check the notification status using the notification API endpoints.
+
+7. Verify that the worker processes the pending job and updates its status after delivery.
+
+### Expected Result
+
+The registration remains stored in the database, and the pending notification job remains available after the worker restarts. The worker can resume processing eligible jobs instead of losing them when its process stops.
+
+**Verification:** Record the notification job ID and its status before stopping the worker. After restarting it, check the same job ID and confirm whether the notification was delivered. Include the observed result in the project demonstration.
+
+## 12. Lost Notifications, Retries, and Duplicate Delivery
+
+### Lost Notifications
+
+A notification can be lost if a system creates a registration but does not reliably save the associated notification job. A similar problem can occur if a job is marked as completed before the notification service actually receives it.
+
+**How this project addresses the problem:** The application stores notification jobs in the database so that eligible pending jobs can be processed independently of the registration request. This reduces the risk of losing notification work when the worker stops.
+
+### Retry Mechanism
+
+The notification service may return an error or time out during delivery. The worker records the failed attempt and schedules another attempt according to the configured retry policy.
+
+For example:
+
+| Attempt        | Result           | Action                              |
+| -------------- | ---------------- | ----------------------------------- |
+| First attempt  | HTTP 500 error   | Record failure and schedule a retry |
+| Second attempt | HTTP 201 success | Mark the notification as delivered  |
+
+This allows temporary failures to be handled without requiring the member to register again.
+
+### Duplicate Delivery
+
+Duplicate delivery can occur when the notification service successfully receives a notification but the worker does not receive the success response—for example, because of a network timeout. The worker may retry the job because it cannot determine whether the first attempt succeeded.
+
+**How this project addresses the problem:** The application uses idempotency mechanisms to help prevent duplicate processing. However, preventing duplicate delivery completely depends on how delivery attempts and the receiving service are implemented. A retry alone cannot guarantee exactly-once delivery.
+
+### Summary
+
+Persistent notification jobs, retry handling, and delivery-status tracking improve reliability. However, the system must account for network failures, worker restarts, and uncertain delivery outcomes. These scenarios should be tested to verify the behavior of the implemented recovery and idempotency mechanisms.
 
 ## 11. Limitations
 
