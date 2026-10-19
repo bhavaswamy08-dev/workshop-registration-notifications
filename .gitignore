@@ -1,0 +1,20 @@
+# Python
+__pycache__/
+*.py[cod]
+.pytest_cache/
+# Virtual environments
+.venv/
+venv/
+env/
+# Local databases (never commit)
+data/
+*.db
+*.db-wal
+*.db-shm
+*.sqlite3
+# Local secrets / config
+.env
+# Editors / OS
+.vscode/
+.idea/
+.DS_Store
